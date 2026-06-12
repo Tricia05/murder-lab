@@ -1,0 +1,10 @@
+# Render Blueprint — deploys Murder Lab as a single free web service.
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: murder-lab
+    runtime: node
+    plan: free
+    buildCommand: npm install --prefix server && npm install --prefix client && npm run build --prefix client
+    startCommand: node server/src/index.js
+    healthCheckPath: /
