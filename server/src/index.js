@@ -132,22 +132,40 @@ io.on('connection', (socket) => {
 
   // ---- Game flow ----------------------------------------------------
 
-  socket.on('game:start', ({ discussionSeconds } = {}, ack) => {
+  socket.on('game:start', ({ discussionSeconds, handSize } = {}, ack) => {
     const { room, player } = ctx(socket);
     if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
-    ack?.(room.startRound(player.id, discussionSeconds));
+    ack?.(room.startRound(player.id, { discussionSeconds, handSize }));
   });
 
-  socket.on('killer:select', ({ methodCardId, evidenceCardId } = {}, ack) => {
+  socket.on('round:next', ({ discussionSeconds, handSize } = {}, ack) => {
     const { room, player } = ctx(socket);
     if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
-    ack?.(room.killerSelect(player.id, methodCardId, evidenceCardId));
+    ack?.(room.startRound(player.id, { discussionSeconds, handSize }));
   });
 
-  socket.on('forensic:submit', ({ selections } = {}, ack) => {
+  socket.on('killer:select', ({ meansCardId, clueCardId } = {}, ack) => {
     const { room, player } = ctx(socket);
     if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
-    ack?.(room.forensicSubmit(player.id, selections));
+    ack?.(room.killerSelect(player.id, meansCardId, clueCardId));
+  });
+
+  socket.on('forensic:mark', ({ tileId, optionId } = {}, ack) => {
+    const { room, player } = ctx(socket);
+    if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
+    ack?.(room.forensicMark(player.id, tileId, optionId));
+  });
+
+  socket.on('forensic:swap', ({ replaceTileId } = {}, ack) => {
+    const { room, player } = ctx(socket);
+    if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
+    ack?.(room.forensicSwap(player.id, replaceTileId));
+  });
+
+  socket.on('forensic:confirm', (_payload, ack) => {
+    const { room, player } = ctx(socket);
+    if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
+    ack?.(room.forensicConfirm(player.id));
   });
 
   socket.on('discussion:end', (_payload, ack) => {
@@ -162,16 +180,10 @@ io.on('connection', (socket) => {
     ack?.(room.togglePause(player.id));
   });
 
-  socket.on('player:accuse', ({ suspectId, methodCardId, evidenceCardId } = {}, ack) => {
+  socket.on('player:solve', ({ suspectId, meansCardId, clueCardId } = {}, ack) => {
     const { room, player } = ctx(socket);
     if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
-    ack?.(room.accuse(player.id, suspectId, methodCardId, evidenceCardId));
-  });
-
-  socket.on('marker:toggle', ({ targetId } = {}, ack) => {
-    const { room, player } = ctx(socket);
-    if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
-    ack?.(room.toggleMarker(player.id, targetId));
+    ack?.(room.solve(player.id, suspectId, meansCardId, clueCardId));
   });
 
   socket.on('killer:guessWitness', ({ targetId } = {}, ack) => {
@@ -184,12 +196,6 @@ io.on('connection', (socket) => {
     const { room, player } = ctx(socket);
     if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
     ack?.(room.showScoreboard(player.id));
-  });
-
-  socket.on('round:next', ({ discussionSeconds } = {}, ack) => {
-    const { room, player } = ctx(socket);
-    if (!room || !player) return ack?.({ ok: false, error: 'Not in a room.' });
-    ack?.(room.startRound(player.id, discussionSeconds));
   });
 
   // ---- Chat -----------------------------------------------------------

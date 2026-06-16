@@ -16,7 +16,7 @@ export default function WitnessGuessModal() {
   // killer, and the killer's own accomplice.
   const candidates = room.players.filter(
     (p) =>
-      p.hand.length > 0 &&
+      p.hand.means.length > 0 &&
       p.id !== me.playerId &&
       p.role !== 'forensic' &&
       p.role !== 'killer' &&

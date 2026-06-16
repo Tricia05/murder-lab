@@ -380,13 +380,18 @@ button.card-chip:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgb
   border: 1px solid var(--card-color);
   white-space: nowrap; z-index: 1;
 }
-.card-chemical { --card-color: var(--c-chemical); }
-.card-tool { --card-color: var(--c-tool); }
-.card-weapon { --card-color: var(--c-weapon); }
-.card-household { --card-color: var(--c-household); }
-.card-medical { --card-color: var(--c-medical); }
-.card-object { --card-color: var(--c-object); }
-.card-evidence { --card-color: var(--c-evidence); }
+/* Two decks: blue MEANS (weapon/method), red CLUE (evidence). */
+.card-means { --card-color: #4f8fd9; }
+.card-clue { --card-color: #d9556a; }
+
+/* Deck section labels above hands. */
+.deck-label {
+  font-size: 0.64rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: 0.12em;
+  margin: 8px 0 4px;
+}
+.deck-label.means { color: #7fb0e8; }
+.deck-label.clue { color: #e88a98; }
 
 /* ---- players grid --------------------------------------------------------- */
 .players-grid {
@@ -414,36 +419,54 @@ button.card-chip:hover { transform: translateY(-3px); box-shadow: 0 6px 12px rgb
 }
 .badge-forensic { border-color: var(--accent-2); color: var(--accent-2); }
 .badge-killer { border-color: var(--danger); color: var(--danger); }
+.badge-witness { border-color: var(--warn); color: var(--warn); }
+.badge-active { border-color: var(--accent-2); color: var(--accent-2); }
 .badge-off { color: var(--muted); }
+.tile-forensic { border-color: var(--accent-2); }
 
-/* ---- clue board -------------------------------------------------------------- */
-.clue-grid {
+/* ---- scene tiles -------------------------------------------------------------- */
+.tiles-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 10px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
-.clue-category { background: var(--panel-2); border-radius: 10px; padding: 10px; }
-.clue-label {
-  font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.08em;
-  color: var(--muted); margin-bottom: 7px;
+.scene-tile {
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
 }
-.clue-options { display: flex; flex-wrap: wrap; gap: 5px; }
-.clue-opt {
+.scene-tile.tile-fixed { border-color: rgba(95, 227, 214, 0.4); }
+.scene-tile.tile-new { border-color: var(--warn); box-shadow: 0 0 12px rgba(255, 180, 84, 0.3); }
+.tile-head {
+  display: flex; align-items: center; gap: 6px; margin-bottom: 8px;
+}
+.tile-label {
+  font-size: 0.78rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: var(--accent-2); flex: 1;
+}
+.tile-pin { font-size: 0.7rem; }
+.tile-swap { margin-left: auto; }
+.tile-options { display: flex; flex-direction: column; gap: 4px; }
+.tile-opt {
+  display: flex; align-items: center; gap: 6px;
   background: var(--bg);
   border: 1px solid var(--border);
   color: var(--text);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  padding: 4px 11px;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  padding: 5px 10px;
+  text-align: left;
 }
-button.clue-opt { cursor: pointer; }
-button.clue-opt:hover { border-color: var(--accent-2); }
-.clue-opt.picked {
-  background: var(--accent-2); color: #10121a;
-  border-color: var(--accent-2); font-weight: 700;
+button.tile-opt { cursor: pointer; }
+button.tile-opt:hover { border-color: var(--accent-2); }
+.tile-opt.marked {
+  background: var(--danger); color: #fff;
+  border-color: var(--danger); font-weight: 700;
 }
-.clue-opt.dim { opacity: 0.4; }
+.tile-opt.dim { opacity: 0.45; }
+.tile-opt .bullet { font-size: 0.6rem; }
 
 /* ---- killer panel ----------------------------------------------------------------- */
 .panel-killer { border-color: var(--danger); }

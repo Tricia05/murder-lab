@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useGame, PHASE_LABELS } from '../context';
 import Timer from './Timer';
 import PlayersGrid from './PlayersGrid';
-import ClueBoard from './ClueBoard';
+import SceneBoard from './SceneBoard';
 import CrimeReport from './CrimeReport';
 import KillerPanel from './KillerPanel';
 import Chat from './Chat';
-import AccusationModal from './AccusationModal';
+import SolveModal from './SolveModal';
 import WitnessGuessModal from './WitnessGuessModal';
 import RevealOverlay from './RevealOverlay';
 import Scoreboard from './Scoreboard';
@@ -17,24 +17,19 @@ function RoleBanner() {
   const { room, me } = useGame();
   if (!me.role) return null;
 
-  const nameOf = (id) => room.players.find((p) => p.id === id)?.name;
-  const cardOf = (playerId, cardId) =>
-    room.players.find((p) => p.id === playerId)?.hand.find((c) => c.id === cardId);
+  const cardOf = (playerId, deck, cardId) =>
+    room.players.find((p) => p.id === playerId)?.hand[deck].find((c) => c.id === cardId);
 
   if (me.role === 'killer') {
     const pick = me.killerPick;
-    const card = (id) => cardOf(me.playerId, id);
     return (
       <div className="role-banner role-killer">
-        🔪 You are the <strong>KILLER</strong>. Blend in, mislead, survive.
-        {me.accompliceName && (
-          <span className="small"> Your accomplice: <strong>{me.accompliceName}</strong>.</span>
-        )}
-        {pick && card(pick.methodCardId) && (
+        🔪 You are the <strong>MURDERER</strong>. Blend in, mislead, survive.
+        {me.accompliceName && <span className="small"> Your accomplice: <strong>{me.accompliceName}</strong>.</span>}
+        {pick && cardOf(me.playerId, 'means', pick.meansCardId) && (
           <span className="small">
-            {' '}
-            Your crime: {card(pick.methodCardId).name} (method) + {card(pick.evidenceCardId).name}{' '}
-            (evidence).
+            {' '}Your crime: {cardOf(me.playerId, 'means', pick.meansCardId).name} (means) +{' '}
+            {cardOf(me.playerId, 'clue', pick.clueCardId).name} (evidence).
           </span>
         )}
       </div>
@@ -43,29 +38,24 @@ function RoleBanner() {
 
   if (me.role === 'forensic' || me.role === 'accomplice') {
     const info = me.killerInfo;
-    const card = (id) => (info?.killerId ? cardOf(info.killerId, id) : null);
     const isForensic = me.role === 'forensic';
     return (
       <div className={`role-banner ${isForensic ? 'role-forensic' : 'role-killer'}`}>
         {isForensic ? (
           <>🥼 You are the <strong>FORENSIC SCIENTIST</strong>.</>
         ) : (
-          <>🤝 You are the <strong>ACCOMPLICE</strong>. Protect the killer — sow doubt, burn their accusations.</>
+          <>🤝 You are the <strong>ACCOMPLICE</strong>. Protect the murderer — sow doubt, burn their attempts.</>
         )}
         {info?.killerName && (
           <span className="small">
-            {' '}
-            The killer is <strong>{info.killerName}</strong>
-            {info.methodCardId && card(info.methodCardId) ? (
+            {' '}The murderer is <strong>{info.killerName}</strong>
+            {info.meansCardId && cardOf(info.killerId, 'means', info.meansCardId) ? (
               <>
-                {' '}
-                — method: <strong>{card(info.methodCardId).name}</strong>, evidence:{' '}
-                <strong>{card(info.evidenceCardId).name}</strong>.
-                {isForensic && ' Guide the investigators with clues only!'}
+                {' '}— means: <strong>{cardOf(info.killerId, 'means', info.meansCardId).name}</strong>,
+                evidence: <strong>{cardOf(info.killerId, 'clue', info.clueCardId).name}</strong>.
+                {isForensic && ' Guide the investigators with markers only!'}
               </>
-            ) : (
-              '.'
-            )}
+            ) : '.'}
           </span>
         )}
       </div>
@@ -77,32 +67,29 @@ function RoleBanner() {
     return (
       <div className="role-banner role-witness">
         👁 You are the <strong>WITNESS</strong>. You saw <strong>{info?.killerName}</strong> do it
-        {info?.accompliceName && (
-          <>
-            {' '}
-            (helped by <strong>{info.accompliceName}</strong>)
-          </>
-        )}
-        — but not how. Steer the table <em>carefully</em>: if the killer is caught, they get one
-        guess at who you are.
+        {info?.accompliceName && <> (helped by <strong>{info.accompliceName}</strong>)</>} — but not
+        how. Steer the table <em>carefully</em>: if the murderer is caught, they get one guess at who you are.
       </div>
     );
   }
 
   return (
     <div className="role-banner role-investigator">
-      🕵️ You are an <strong>INVESTIGATOR</strong>. Study the reports and find the killer.
+      🕵️ You are an <strong>INVESTIGATOR</strong>. Read the scene tiles and name the murderer, the means and the evidence.
     </div>
   );
 }
 
 /** Contextual instructions + action buttons for the current phase. */
-function PhaseStatus({ onOpenAccusation }) {
+function PhaseStatus({ onOpenSolve }) {
   const { room, me, act } = useGame();
   const self = room.players.find((p) => p.id === me.playerId);
   const isHost = !!self?.isHost;
-  const canAccuse =
-    room.accusationsOpen && me.role && me.role !== 'forensic' && !self?.hasAccused;
+  const canSolve = room.solvingOpen && me.role && me.role !== 'forensic' && self?.hasBadge;
+
+  const solveBtn = canSolve && (
+    <button className="btn btn-danger btn-small" onClick={onOpenSolve}>Solve the Crime</button>
+  );
 
   switch (room.phase) {
     case 'dealing':
@@ -112,63 +99,36 @@ function PhaseStatus({ onOpenAccusation }) {
       return (
         <div className="phase-status">
           {me.role === 'killer'
-            ? 'Choose your murder method and key evidence below.'
-            : '🌙 Night falls… someone is committing the perfect murder.'}
+            ? 'Choose your means of murder and key evidence below.'
+            : '🌙 Night falls… the murderer is choosing the means and the evidence.'}
         </div>
       );
 
-    case 'forensicClues':
+    case 'forensic':
       return (
         <div className="phase-status">
           {me.role === 'forensic'
-            ? 'Select one finding per category — these clues are your ONLY way to communicate.'
-            : '🧪 The forensic scientist is examining the body…'}
+            ? `🔬 Round ${room.round}/${room.totalRounds}: place your markers on the scene tiles.`
+            : `🔬 The forensic scientist is examining the evidence (round ${room.round}/${room.totalRounds})…`}
+          {solveBtn}
         </div>
       );
 
     case 'discussion':
       return (
         <div className="phase-status">
-          🗣 The full forensic report is in — discuss the evidence and inspect everyone's cards!
-          {canAccuse && (
-            <button className="btn btn-danger btn-small" onClick={onOpenAccusation}>
-              Accuse
-            </button>
-          )}
+          🗣 Round {room.round}/{room.totalRounds} — discuss the evidence!
+          {self?.role !== 'forensic' && !self?.hasBadge && <span className="small muted"> (your attempt is spent)</span>}
+          {solveBtn}
           {isHost && (
             <>
               <button className="btn btn-small" onClick={() => act('timer:pauseToggle')}>
-                {room.pausedRemaining != null ? '▶ Resume timer' : '⏸ Pause timer'}
+                {room.pausedRemaining != null ? '▶ Resume' : '⏸ Pause'}
               </button>
               <button className="btn btn-small" onClick={() => act('discussion:end')}>
-                Skip to accusations
+                {room.round < room.totalRounds ? 'Next round' : 'End game'}
               </button>
             </>
-          )}
-        </div>
-      );
-
-    case 'accusation':
-      return (
-        <div className="phase-status">
-          {me.role === 'forensic' ? (
-            'The investigators are making their final accusations…'
-          ) : self?.hasAccused ? (
-            'You used your accusation. Hope it lands…'
-          ) : me.role ? (
-            <>
-              ⚖️ Make your one and only accusation!
-              <button className="btn btn-danger btn-small" onClick={onOpenAccusation}>
-                Accuse
-              </button>
-            </>
-          ) : (
-            'Final accusations are underway…'
-          )}
-          {isHost && (
-            <button className="btn btn-small" onClick={() => act('timer:pauseToggle')}>
-              {room.pausedRemaining != null ? '▶ Resume timer' : '⏸ Pause timer'}
-            </button>
           )}
         </div>
       );
@@ -180,48 +140,43 @@ function PhaseStatus({ onOpenAccusation }) {
 
 export default function GameRoom() {
   const { room, me, leave } = useGame();
-  const [accusing, setAccusing] = useState(false);
+  const [solving, setSolving] = useState(false);
 
-  // The scoreboard replaces the whole game view between rounds.
   if (room.phase === 'scoreboard') return <Scoreboard />;
 
-  const showClueBoardPicker = room.phase === 'forensicClues' && me.role === 'forensic';
-  const showClueBoard =
-    showClueBoardPicker ||
-    ['discussion', 'accusation', 'witnessGuess', 'reveal'].includes(room.phase);
+  const showSceneBoardPicker = room.phase === 'forensic' && me.role === 'forensic';
+  const showSceneBoard = ['forensic', 'discussion', 'witnessGuess', 'reveal'].includes(room.phase);
 
   return (
     <div className="game">
       <header className="game-header">
         <div className="game-title">
           🔬 <strong>Murder Lab</strong>
-          <span className="muted small"> · room {room.code} · round {room.round}</span>
+          <span className="muted small"> · room {room.code}</span>
         </div>
         <div className="game-meta">
           <span className="phase-pill">{PHASE_LABELS[room.phase] || room.phase}</span>
           <Timer endsAt={room.timerEndsAt} pausedRemaining={room.pausedRemaining} />
-          <button className="btn btn-ghost btn-small" onClick={leave}>
-            Leave
-          </button>
+          <button className="btn btn-ghost btn-small" onClick={leave}>Leave</button>
         </div>
       </header>
 
       <RoleBanner />
-      <PhaseStatus onOpenAccusation={() => setAccusing(true)} />
+      <PhaseStatus onOpenSolve={() => setSolving(true)} />
 
       {room.phase === 'killerSelect' && me.role === 'killer' && <KillerPanel />}
-      <CrimeReport />
-      {showClueBoard && <ClueBoard interactive={showClueBoardPicker} />}
+      {showSceneBoard && <CrimeReport />}
+      {showSceneBoard && <SceneBoard interactive={showSceneBoardPicker} />}
 
       <PlayersGrid />
 
-      {room.accusations.length > 0 && ['discussion', 'accusation'].includes(room.phase) && (
+      {room.solveAttempts.length > 0 && ['forensic', 'discussion'].includes(room.phase) && (
         <section className="panel">
-          <h3>⚖️ Accusations</h3>
+          <h3>⚖️ Attempts</h3>
           <ul className="small accusation-list">
-            {room.accusations.map((a, i) => (
+            {room.solveAttempts.map((a, i) => (
               <li key={i}>
-                {a.byName} accused {a.suspectName}: {a.methodCard.name} + {a.evidenceCard.name} —{' '}
+                {a.byName} accused {a.suspectName}: {a.meansCard.name} + {a.clueCard.name} —{' '}
                 {a.correct ? '✅' : '❌ wrong'}
               </li>
             ))}
@@ -232,7 +187,7 @@ export default function GameRoom() {
       <Chat />
       <RoundHistory />
 
-      {accusing && <AccusationModal onClose={() => setAccusing(false)} />}
+      {solving && <SolveModal onClose={() => setSolving(false)} />}
       {room.phase === 'witnessGuess' && <WitnessGuessModal />}
       {room.phase === 'reveal' && <RevealOverlay />}
     </div>

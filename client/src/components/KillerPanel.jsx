@@ -3,71 +3,66 @@ import { useGame } from '../context';
 import CardChip from './CardChip';
 
 /**
- * Shown only to the killer during the killerSelect phase.
- * The METHOD must be a plausibly-lethal card; the EVIDENCE can be anything
- * else in the hand. First tap marks the method, second tap the evidence.
+ * Shown only to the murderer during the killerSelect phase.
+ * They pick one MEANS card (the Means of Murder) and one CLUE card (the Key
+ * Evidence) from their own two hands.
  */
 export default function KillerPanel() {
-  const { room, me, act, notify } = useGame();
-  const [methodId, setMethodId] = useState(null);
-  const [evidenceId, setEvidenceId] = useState(null);
+  const { room, me, act } = useGame();
+  const [meansId, setMeansId] = useState(null);
+  const [clueId, setClueId] = useState(null);
 
   const self = room.players.find((p) => p.id === me.playerId);
   if (!self) return null;
 
-  function tap(card) {
-    if (card.id === methodId) return setMethodId(null);
-    if (card.id === evidenceId) return setEvidenceId(null);
-    if (!methodId) {
-      if (!card.methodOk) {
-        notify(`${card.name} couldn't kill anyone — the METHOD must be a lethal item.`);
-        return;
-      }
-      return setMethodId(card.id);
-    }
-    if (!evidenceId) return setEvidenceId(card.id);
-  }
-
   async function confirm() {
-    await act('killer:select', { methodCardId: methodId, evidenceCardId: evidenceId });
+    await act('killer:select', { meansCardId: meansId, clueCardId: clueId });
   }
 
   return (
     <section className="panel panel-killer">
       <h3>🔪 Commit the Murder</h3>
       <p className="small">
-        Choose two cards from <strong>your own hand</strong>: a <strong>lethal method</strong>{' '}
-        (marked ⚔) and the <strong>key evidence</strong> you left behind. The forensic scientist
-        — and your accomplice, if you have one — will see them. Ambiguous methods make for
-        murkier clues…
+        Choose the <strong>Means of Murder</strong> (one blue card) and the{' '}
+        <strong>Key Evidence</strong> (one red card) from your own cards. The forensic scientist
+        — and your accomplice, if any — will know your choice. Pick a pairing the clues could be
+        argued to fit someone else.
       </p>
+
+      <div className="deck-label means">Means of Murder</div>
       <div className="hand hand-large">
-        {self.hand.map((card) => (
+        {self.hand.means.map((card) => (
           <CardChip
             key={card.id}
             card={card}
-            onClick={() => tap(card)}
-            selected={card.id === methodId || card.id === evidenceId}
-            tag={
-              card.id === methodId
-                ? 'METHOD'
-                : card.id === evidenceId
-                ? 'EVIDENCE'
-                : card.methodOk && !methodId
-                ? '⚔'
-                : null
-            }
+            onClick={() => setMeansId(card.id === meansId ? null : card.id)}
+            selected={card.id === meansId}
+            tag={card.id === meansId ? 'MEANS' : null}
           />
         ))}
       </div>
+
+      <div className="deck-label clue">Key Evidence</div>
+      <div className="hand hand-large">
+        {self.hand.clue.map((card) => (
+          <CardChip
+            key={card.id}
+            card={card}
+            onClick={() => setClueId(card.id === clueId ? null : card.id)}
+            selected={card.id === clueId}
+            tag={card.id === clueId ? 'EVIDENCE' : null}
+          />
+        ))}
+      </div>
+
       {me.accompliceName && (
         <p className="small muted">🤝 Your accomplice is <strong>{me.accompliceName}</strong>.</p>
       )}
       <div className="row">
-        <button className="btn btn-ghost" onClick={() => { setMethodId(null); setEvidenceId(null); }}>
+        <button className="btn btn-ghost" onClick={() => { setMeansId(null); setClueId(null); }}>
           Clear
         </button>
-        <button className="btn btn-danger" disabled={!methodId || !evidenceId} onClick={confirm}>
+        <button className="btn btn-danger" disabled={!meansId || !clueId} onClick={confirm}>
           Confirm Murder
         </button>
       </div>

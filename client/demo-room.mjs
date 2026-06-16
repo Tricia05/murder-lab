@@ -49,23 +49,21 @@ setInterval(async () => {
       started = true;
       await emit(bot.socket, 'game:start', { discussionSeconds: 180 });
     }
-    // Killer bot: pick a lethal method plus any other card as evidence.
+    // Murderer bot: pick one Means + one Clue card.
     if (you.role === 'killer' && state.phase === 'killerSelect' && !bot.acted.kill) {
       bot.acted.kill = true;
       const hand = state.players.find((p) => p.id === you.playerId).hand;
-      const method = hand.find((c) => c.methodOk) || hand[0];
-      const evidence = hand.find((c) => c.id !== method.id);
       await emit(bot.socket, 'killer:select', {
-        methodCardId: method.id,
-        evidenceCardId: evidence.id,
+        meansCardId: hand.means[0].id,
+        clueCardId: hand.clue[0].id,
       });
     }
-    // Killer bot: if caught, take a random guess at the witness.
+    // Murderer bot: if caught, take a random guess at the witness.
     if (you.role === 'killer' && state.phase === 'witnessGuess' && !bot.acted.guess) {
       bot.acted.guess = true;
       const candidates = state.players.filter(
         (p) =>
-          p.hand.length > 0 &&
+          p.hand.means.length > 0 &&
           p.id !== you.playerId &&
           p.role !== 'forensic' &&
           p.id !== you.accompliceId
@@ -73,14 +71,20 @@ setInterval(async () => {
       const pick = candidates[Math.floor(Math.random() * candidates.length)];
       if (pick) await emit(bot.socket, 'killer:guessWitness', { targetId: pick.id });
     }
-    // Forensic bot: pick a random option per category.
-    if (you.role === 'forensic' && state.phase === 'forensicClues' && !bot.acted.clues) {
-      bot.acted.clues = true;
-      const selections = {};
-      for (const cat of state.clueCategories) {
-        selections[cat.id] = cat.options[Math.floor(Math.random() * cat.options.length)].id;
+    // Forensic bot: in each forensic phase, mark tiles then confirm.
+    if (you.role === 'forensic' && state.phase === 'forensic' && bot.acted.forensicRound !== state.round) {
+      bot.acted.forensicRound = state.round;
+      if (state.round > 1) {
+        const swappable = state.tiles.filter((t) => !t.fixed);
+        await emit(bot.socket, 'forensic:swap', { replaceTileId: swappable[0].id });
       }
-      await emit(bot.socket, 'forensic:submit', { selections });
+      // Re-read state after a possible swap.
+      for (const tile of bot.state.tiles) {
+        if (!bot.state.tileMarks[tile.id]) {
+          await emit(bot.socket, 'forensic:mark', { tileId: tile.id, optionId: tile.options[0].id });
+        }
+      }
+      await emit(bot.socket, 'forensic:confirm');
     }
   }
 }, 1000);

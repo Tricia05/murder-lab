@@ -1,66 +1,69 @@
 // ---------------------------------------------------------------------------
-// Card pool for Murder Lab.
+// Card pool for Murder Lab (faithful to Deception: Murder in Hong Kong).
 //
-// 72 unique item cards across 7 categories, each with an emoji "picture" and
-// a `methodOk` flag: only plausibly-lethal items may be chosen as the murder
-// METHOD. Any other card can be the KEY EVIDENCE (evidence answers "what got
-// left behind", so even a Train Ticket qualifies).
+// TWO separate decks, exactly as in the board game:
+//   - MEANS cards (blue): the murder weapon / method. The murderer picks one
+//     as the "Means of Murder".
+//   - CLUE cards (red): incidental evidence / personal items left behind. The
+//     murderer picks one as the "Key Evidence".
 //
-// With the maximum of 14 players each holding 5 cards we need 70 cards, so
-// the pool is always sufficient to deal without duplicates.
+// Every player is dealt 4 Means + 4 Clue cards (configurable 3–5 for
+// difficulty). With 14 players that needs 56 of each deck without duplicates,
+// so both pools hold 64+ unique cards.
 // ---------------------------------------------------------------------------
 
-// [name, icon, methodOk]
-const POOL = {
-  chemical: [
-    ['Cyanide', '☠️', true], ['Chloroform', '🧪', true], ['Acid', '⚗️', true], ['Bleach', '🧼', true],
-    ['Arsenic', '🧂', true], ['Sleeping Pills', '💊', true], ['Rat Poison', '🐀', true], ['Antifreeze', '❄️', true],
-    ['Mercury', '💧', true], ['Pesticide', '🪳', true], ['Ammonia', '🫧', true], ['Ether', '🌫️', true],
-  ],
-  tool: [
-    ['Rope', '🪢', true], ['Hammer', '🔨', true], ['Knife', '🔪', true], ['Syringe', '💉', true],
-    ['Wrench', '🔧', true], ['Scalpel', '🪒', true], ['Pliers', '🗜️', false], ['Drill', '🔩', true],
-    ['Saw', '🪚', true], ['Crowbar', '🪝', true], ['Box Cutter', '🗡️', true], ['Chain', '⛓️', true],
-  ],
-  weapon: [
-    ['Pistol', '🔫', true], ['Crossbow', '🏹', true], ['Baseball Bat', '🏏', true], ['Ice Pick', '⛏️', true],
-    ['Shovel', '⚒️', true], ['Axe', '🪓', true], ['Brick', '🧱', true], ['Dumbbell', '🏋️', true],
-  ],
-  household: [
-    ['Extension Cord', '🔌', true], ['Frying Pan', '🍳', true], ['Scissors', '✂️', true], ['Clothes Iron', '♨️', true],
-    ['Toaster', '🍞', false], ['Plastic Bag', '🛍️', true], ['Leather Belt', '🥋', true], ['Screwdriver', '🪛', true],
-  ],
-  medical: [
-    ['Insulin', '🍬', true], ['Defibrillator', '⚡', true], ['Bandages', '🩹', false], ['Oxygen Tank', '🫁', true],
-    ['Thermometer', '🌡️', false], ['IV Drip', '🏥', true], ['Surgical Mask', '😷', false], ['Painkillers', '🤕', true],
-  ],
-  object: [
-    ['Wine Glass', '🍷', true], ['Coffee Mug', '☕', false], ['Pillow', '🛏️', true], ['Candle', '🕯️', true],
-    ['Laptop', '💻', false], ['Gloves', '🧤', false], ['Scarf', '🧣', true], ['Umbrella', '☂️', true],
-    ['Phone Charger', '📱', true], ['High Heel', '👠', true], ['Trophy', '🏆', true], ['Guitar String', '🎸', true],
-  ],
-  evidence: [
-    ['Hotel Key', '🔑', false], ['Notebook', '📓', false], ['Wallet', '👛', false], ['Medicine Bottle', '🧴', false],
-    ['Tissue', '🧻', false], ['Broken Watch', '⌚', false], ['Lipstick', '💄', false], ['Cigarette Butt', '🚬', false],
-    ['Train Ticket', '🎫', false], ['Reading Glasses', '👓', false], ['Earring', '💎', false], ['Receipt', '🧾', false],
-  ],
-};
+// [name, icon]
+const MEANS = [
+  ['Pistol', '🔫'], ['Revolver', '💥'], ['Shotgun', '🌫️'], ['Hunting Rifle', '🎯'],
+  ['Knife', '🔪'], ['Dagger', '🗡️'], ['Cleaver', '🪓'], ['Scalpel', '🪒'],
+  ['Box Cutter', '📦'], ['Axe', '🪓'], ['Machete', '⚔️'], ['Ice Pick', '⛏️'],
+  ['Hammer', '🔨'], ['Wrench', '🔧'], ['Crowbar', '🪝'], ['Baseball Bat', '🏏'],
+  ['Golf Club', '🏌️'], ['Brick', '🧱'], ['Dumbbell', '🏋️'], ['Frying Pan', '🍳'],
+  ['Candlestick', '🕯️'], ['Trophy', '🏆'], ['Rope', '🪢'], ['Piano Wire', '🎻'],
+  ['Chain', '⛓️'], ['Leather Belt', '🥋'], ['Silk Scarf', '🧣'], ['Extension Cord', '🔌'],
+  ['Plastic Bag', '🛍️'], ['Pillow', '🛏️'], ['Cyanide', '☠️'], ['Arsenic', '🧂'],
+  ['Bleach', '🧼'], ['Acid', '⚗️'], ['Chloroform', '🧪'], ['Rat Poison', '🐀'],
+  ['Antifreeze', '❄️'], ['Mercury', '💧'], ['Pesticide', '🪳'], ['Ether', '🌫️'],
+  ['Insulin', '🍬'], ['Sleeping Pills', '💊'], ['Painkillers', '🤕'], ['Syringe', '💉'],
+  ['Toxic Gas', '🫧'], ['Carbon Monoxide', '🚗'], ['Lighter Fluid', '🔥'], ['Live Wire', '⚡'],
+  ['Letter Opener', '✉️'], ['Scissors', '✂️'], ['Screwdriver', '🪛'], ['Power Drill', '🔩'],
+  ['Hand Saw', '🪚'], ['Nail Gun', '🔨'], ['Pitchfork', '🔱'], ['Garrote', '➰'],
+  ['Shovel', '⚒️'], ['Kitchen Cleaver', '🥩'], ['Corkscrew', '🍾'], ['Fire Poker', '🔥'],
+  ['Curtain Cord', '🪟'], ['Stiletto Heel', '👠'], ['Heavy Vase', '🏺'], ['Meat Hook', '🪝'],
+];
+
+const CLUES = [
+  ['Hotel Key', '🔑'], ['Car Keys', '🗝️'], ['Diary', '📔'], ['Notebook', '📓'],
+  ['Love Letter', '✉️'], ['Photograph', '📷'], ['Wallet', '👛'], ['Handbag', '👜'],
+  ['Cash Roll', '💵'], ['Credit Card', '💳'], ['Receipt', '🧾'], ['Train Ticket', '🎫'],
+  ['Plane Ticket', '🛫'], ['Passport', '📕'], ['ID Card', '🪪'], ['Business Card', '💼'],
+  ['Smartphone', '📱'], ['Charger Cable', '🔌'], ['Laptop', '💻'], ['USB Drive', '💾'],
+  ['Wristwatch', '⌚'], ['Broken Watch', '🕰️'], ['Diamond Ring', '💍'], ['Necklace', '📿'],
+  ['Earring', '💎'], ['Bracelet', '⛓️'], ['Lipstick', '💄'], ['Perfume Bottle', '🌸'],
+  ['Compact Mirror', '🪞'], ['Hair Comb', '💈'], ['Hairpin', '📌'], ['Reading Glasses', '👓'],
+  ['Sunglasses', '🕶️'], ['Contact Lens', '👁️'], ['Tissue', '🧻'], ['Handkerchief', '🤧'],
+  ['Leather Glove', '🧤'], ['Fedora Hat', '🎩'], ['Dress Shoe', '👞'], ['Wool Sock', '🧦'],
+  ['Silk Tie', '👔'], ['Shirt Button', '🔘'], ['Cufflink', '🔗'], ['Umbrella', '☂️'],
+  ['Cigarette Butt', '🚬'], ['Matchbook', '🔥'], ['Wine Glass', '🍷'], ['Coffee Mug', '☕'],
+  ['Empty Bottle', '🍾'], ['Pill Bottle', '🧴'], ['Folded Map', '🗺️'], ['Newspaper', '📰'],
+  ['Magazine', '📖'], ['Bookmark', '🔖'], ['Fountain Pen', '🖊️'], ['Old Coin', '🪙'],
+  ['Keychain', '🧷'], ['Torn Photo', '🖼️'], ['Bus Pass', '🚌'], ['Library Card', '📚'],
+  ['Lottery Ticket', '🎰'], ['Wedding Band', '💒'], ['Pocket Watch', '⏱️'], ['Name Tag', '🏷️'],
+];
 
 /** Turn "Sleeping Pills" into "sleeping-pills". */
 function slugify(name) {
   return name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 }
 
-/** Flat list of every card: { id, name, icon, category, methodOk }. */
-export const CARD_POOL = Object.entries(POOL).flatMap(([category, items]) =>
-  items.map(([name, icon, methodOk]) => ({
-    id: `${category}-${slugify(name)}`,
-    name,
-    icon,
-    category,
-    methodOk,
-  }))
-);
+function build(list, deck) {
+  return list.map(([name, icon]) => ({ id: `${deck}-${slugify(name)}`, name, icon, deck }));
+}
 
-/** Fast lookup by card id. */
-export const CARD_BY_ID = new Map(CARD_POOL.map((c) => [c.id, c]));
+/** The blue "Means of Murder" deck. */
+export const MEANS_POOL = build(MEANS, 'means');
+/** The red "Key Evidence" deck. */
+export const CLUE_POOL = build(CLUES, 'clue');
+
+/** Fast lookup by card id across both decks. */
+export const CARD_BY_ID = new Map([...MEANS_POOL, ...CLUE_POOL].map((c) => [c.id, c]));

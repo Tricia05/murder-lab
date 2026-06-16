@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useGame } from '../context';
 
-const ROUND_ACTIVE = ['killerSelect', 'forensicClues', 'discussion', 'accusation', 'witnessGuess'];
+const ROUND_ACTIVE = ['killerSelect', 'forensic', 'discussion', 'witnessGuess'];
 
 /** Room chat. The forensic scientist is muted while a round is live. */
 export default function Chat() {

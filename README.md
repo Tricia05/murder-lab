@@ -50,37 +50,38 @@ npm start            # server now serves the game at http://localhost:3001
 
 ---
 
-## How to play
+Murder Lab follows the rules of *Deception: Murder in Hong Kong*.
 
-1. **Lobby** — the host creates a room and shares the 4-letter room code. Players join
-   from any device. The host picks the discussion time and starts the game.
-2. **Deal & roles** — every connected player gets **5 random item cards**, dealt fairly:
-   every hand always contains at least two plausibly-lethal items, so *everyone* is a
-   credible suspect. The **host is always the Forensic Scientist**. One other player is
-   secretly the **Killer**. With 5+ players a **Witness** is added (knows *who* did it,
-   not *how*); with 6+ players the killer also gets an **Accomplice** (knows the full
-   solution, wins with the killer). Everyone else investigates. All hands are face-up.
-3. **The murder** — the killer secretly picks a **lethal method** card and a **key
-   evidence** card from their own hand. The accomplice sees the picks.
-4. **Forensic analysis** — the scientist can **never type clues**. Each round, **8 clue
-   categories** are active (4 core + 4 drawn from a 50-category library, with precision
-   limits), and the scientist picks exactly one finding per category.
-5. **Investigation** — the findings publish all at once as a generated **crime report**
-   in three sections: *Autopsy · Scene · Laboratory*. Players debate the evidence and
-   place public **suspicion markers** (🔍, two each) on the players they distrust.
-6. **Accusations** — open as soon as the report lands. Each non-forensic player gets
-   **one** accusation per round: suspect + lethal method + evidence from that suspect's
-   hand.
-   - ✅ A fully correct accusation solves the case…
-   - 👁 …but if a Witness is in play, the caught killer gets **one final guess** at the
-     witness's identity. Correct = **the killer team steals the win**.
-   - 🔪 The killer wins outright if time runs out or every accusation misses.
-7. **Reveal & scoreboard** — full role chart, murder cards, the steal attempt, points,
-   then a fresh round with new cards, roles, and clue categories.
+1. **Lobby** — the host creates a room and shares the 4-letter code. The host sets the
+   discussion time (per round) and difficulty, then starts the game.
+2. **Deal & roles** — every player gets two face-up hands: **4 Means cards** (blue —
+   weapons/methods) and **4 Clue cards** (red — evidence). The **host is always the
+   Forensic Scientist**. One other player is secretly the **Murderer**; with 5+ players a
+   **Witness** is added (knows *who*, not *how*); with 6+ a **Accomplice** joins the
+   murderer (knows the full solution). Everyone else investigates.
+3. **The crime** — the murderer secretly picks **1 Means card** (Means of Murder) and
+   **1 Clue card** (Key Evidence) from their own hands.
+4. **Forensic analysis** — the scientist can **never speak or type**. They communicate
+   only by placing one bullet marker on each of **6 Scene tiles** (Cause of Death and
+   Location of Crime are fixed; 4 are drawn at random, each with 6 options).
+5. **Investigation — 3 rounds** — after round 1's markers, each later round the scientist
+   **swaps one non-fixed tile** for a fresh one and re-marks it, so the evidence evolves.
+   Players debate between rounds; a generated forensic report restates the markers.
+6. **Solving the crime** — at any time, each investigator gets **one** attempt, which
+   spends their badge: name a suspect + one of their Means cards + one of their Clue
+   cards. To win it must match the suspect, the Means of Murder **and** the Key Evidence.
+   A wrong guess just earns a silent "No."
+   - 👁 If the case is solved and a **Witness** is in play, the caught murderer gets
+     **one guess** at the witness's identity — correct = **the killer team steals the win**.
+   - 🔪 The murderer wins if no one solves it by the end of round 3, or every badge is spent.
+7. **Reveal & scoreboard** — full role chart, the murder cards, the steal attempt, points,
+   then a fresh case.
 
-**Scoring:** case solved — accuser **+3**, forensic **+2**, witness **+2**, other
-investigators **+1** · killer escapes — killer **+5**, accomplice **+2** · witness
-unmasked — killer **+4**, accomplice **+2**.
+**Difficulty** — hand size is configurable: 3 cards each (easier) · 4 (standard) · 5 (harder).
+
+**Scoring:** case solved — solver **+3**, forensic **+2**, witness **+2**, other
+investigators **+1** · murderer escapes — murderer **+5**, accomplice **+2** · witness
+unmasked — murderer **+4**, accomplice **+2**.
 
 ---
 

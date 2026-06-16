@@ -4,7 +4,8 @@ import { useGame } from '../context';
 /** Pre-game lobby: share the room code, wait for players, host starts. */
 export default function Lobby() {
   const { room, me, act, leave, notify } = useGame();
-  const [minutes, setMinutes] = useState(5);
+  const [minutes, setMinutes] = useState(2);
+  const [handSize, setHandSize] = useState(4);
 
   const self = room.players.find((p) => p.id === me.playerId);
   const isHost = !!self?.isHost;
@@ -49,19 +50,27 @@ export default function Lobby() {
         {isHost ? (
           <div className="host-controls">
             <label className="field">
-              <span>Discussion time (split across 3 report waves)</span>
+              <span>Discussion time per round (3 rounds of evidence)</span>
               <select value={minutes} onChange={(e) => setMinutes(Number(e.target.value))}>
-                {[2, 3, 4, 5, 6, 8, 10].map((m) => (
+                {[1, 2, 3, 4, 5].map((m) => (
                   <option key={m} value={m}>
-                    {m} minutes
+                    {m} minute{m === 1 ? '' : 's'} × 3 rounds
                   </option>
                 ))}
+              </select>
+            </label>
+            <label className="field">
+              <span>Difficulty (cards in each hand)</span>
+              <select value={handSize} onChange={(e) => setHandSize(Number(e.target.value))}>
+                <option value={3}>Easy — 3 means + 3 clues</option>
+                <option value={4}>Standard — 4 means + 4 clues</option>
+                <option value={5}>Hard — 5 means + 5 clues</option>
               </select>
             </label>
             <button
               className="btn btn-primary btn-block"
               disabled={!canStart}
-              onClick={() => act('game:start', { discussionSeconds: minutes * 60 })}
+              onClick={() => act('game:start', { discussionSeconds: minutes * 60, handSize })}
             >
               {canStart
                 ? 'Start Game'
