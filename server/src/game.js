@@ -16,10 +16,10 @@
 // re-mark it, so the evidence evolves. Any investigator may, at any time,
 // spend their single badge on one attempt to "solve the crime".
 //
-// Roles (host is always the Forensic Scientist):
-//   4    : murderer + 2 investigators
-//   5    : murderer + witness + 2 investigators
-//   6+   : murderer + accomplice + witness + investigators
+// Roles (host is always the Forensic Scientist). Per the official rules the
+// Witness only plays alongside the Accomplice, so neither appears below 6:
+//   4–5 : murderer + investigators
+//   6+  : murderer + accomplice + witness + investigators
 // ---------------------------------------------------------------------------
 
 import crypto from 'crypto';
@@ -294,8 +294,11 @@ export class Room {
     player.hasBadge = false; // the scientist never accuses
     others[0].role = 'killer';
     let i = 1;
-    if (active.length >= 6) others[i++].role = 'accomplice';
-    if (active.length >= 5) others[i++].role = 'witness';
+    // The witness only plays alongside the accomplice — both appear at 6+.
+    if (active.length >= 6) {
+      others[i++].role = 'accomplice';
+      others[i++].role = 'witness';
+    }
     for (; i < others.length; i++) others[i].role = 'investigator';
 
     this.phase = 'dealing';

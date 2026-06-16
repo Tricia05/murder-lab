@@ -56,9 +56,9 @@ Murder Lab follows the rules of *Deception: Murder in Hong Kong*.
    discussion time (per round) and difficulty, then starts the game.
 2. **Deal & roles** — every player gets two face-up hands: **4 Means cards** (blue —
    weapons/methods) and **4 Clue cards** (red — evidence). The **host is always the
-   Forensic Scientist**. One other player is secretly the **Murderer**; with 5+ players a
-   **Witness** is added (knows *who*, not *how*); with 6+ a **Accomplice** joins the
-   murderer (knows the full solution). Everyone else investigates.
+   Forensic Scientist**. One other player is secretly the **Murderer**. With **6+ players**
+   a **Accomplice** joins the murderer (knows the full solution) and a **Witness** is added
+   (knows *who* did it, not *how*). Everyone else investigates.
 3. **The crime** — the murderer secretly picks **1 Means card** (Means of Murder) and
    **1 Clue card** (Key Evidence) from their own hands.
 4. **Forensic analysis** — the scientist can **never speak or type**. They communicate

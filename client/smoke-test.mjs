@@ -182,5 +182,21 @@ console.log('\nScenario B — 6 players: accomplice, witness, the steal');
   players.forEach((p) => p.socket.disconnect());
 }
 
+// ===========================================================================
+console.log('\nScenario C — 5 players: no accomplice, no witness (official rule)');
+{
+  const { players } = await setupRoom(['Ada', 'Ben', 'Cy', 'Di', 'Ed'], { discussionSeconds: 60, handSize: 4 });
+  const roles = players.map((p) => p.you.role).sort();
+  const witness = players.find((p) => p.you.role === 'witness');
+  const accomplice = players.find((p) => p.you.role === 'accomplice');
+  assert(!witness, 'no witness at 5 players');
+  assert(!accomplice, 'no accomplice at 5 players');
+  assert(players.filter((p) => p.you.role === 'killer').length === 1, 'exactly one murderer');
+  assert(players.filter((p) => p.you.role === 'forensic').length === 1, 'exactly one scientist');
+  assert(players.filter((p) => p.you.role === 'investigator').length === 3, '3 investigators');
+  ok(`5-player roles correct: ${roles.join(', ')}`);
+  players.forEach((p) => p.socket.disconnect());
+}
+
 console.log('\nALL SMOKE TESTS PASSED ✅');
 process.exit(0);
